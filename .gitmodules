@@ -2,3 +2,7 @@
 	path = submodule/Adv360-Pro-ZMK
 	url = git@github.com:ickc/Adv360-Pro-ZMK.git
 	branch = dev
+[submodule "submodule/Moonlander-Mk1-QMK"]
+	path = submodule/Moonlander-Mk1-QMK
+	url = git@github.com:ickc/Moonlander-Mk1-QMK.git
+	branch = dev
