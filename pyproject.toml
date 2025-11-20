@@ -15,3 +15,7 @@ platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 
 [tool.pixi.pypi-dependencies]
 unified_keyboard_config = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+submodule-init = { cmd = "git submodule update --init --recursive", description = "Initialize submodules after cloning" }
+submodule-update = { cmd = "git submodule update --remote --recursive", description = "Update submodules from remote" }
