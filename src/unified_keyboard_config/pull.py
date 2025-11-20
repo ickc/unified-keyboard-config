@@ -2,27 +2,27 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
 
+from .patch import patch_keymap
 
-def main():
-    # 1. Get configuration from environment variables
-    layout_id = os.environ.get("ORYX_LAYOUT_ID")
-    geometry = os.environ.get("ORYX_GEOMETRY")
 
+def pull_source(
+    submodule_path: Path, layout_id: str, geometry: str, do_patch: bool = False
+):
+    """
+    Pulls the latest Oryx layout source and updates the submodule.
+    Optionally patches the keymap.
+    """
     if not layout_id or not geometry:
-        print(
-            "Error: ORYX_LAYOUT_ID and ORYX_GEOMETRY environment variables must be set."
-        )
-        sys.exit(1)
+        raise ValueError("layout_id and geometry must be provided.")
 
     print(f"Fetching latest layout for ID: {layout_id}, Geometry: {geometry}")
 
-    # 2. Query Oryx GraphQL API
+    # 1. Query Oryx GraphQL API
     url = "https://oryx.zsa.io/graphql"
     query = """
     query getLayout($hashId: String!, $revisionId: String!, $geometry: String) {
@@ -47,21 +47,20 @@ def main():
         with urllib.request.urlopen(req) as response:
             response_data = json.loads(response.read().decode("utf-8"))
     except urllib.error.URLError as e:
-        print(f"Error querying Oryx API: {e}")
-        sys.exit(1)
+        raise RuntimeError(f"Error querying Oryx API: {e}") from e
 
     revision = response_data.get("data", {}).get("layout", {}).get("revision")
     if not revision:
-        print("Error: Could not retrieve layout revision information.")
-        print(f"Response: {response_data}")
-        sys.exit(1)
+        raise RuntimeError(
+            f"Error: Could not retrieve layout revision information. Response: {response_data}"
+        )
 
     latest_hash = revision["hashId"]
     title = revision["title"]
     print(f"Found latest hash: {latest_hash}")
     print(f"Layout title: {title}")
 
-    # 3. Download source zip
+    # 2. Download source zip
     download_url = f"https://oryx.zsa.io/source/{latest_hash}"
     zip_filename = "source.zip"
     print(f"Downloading source from: {download_url}")
@@ -69,22 +68,22 @@ def main():
     try:
         urllib.request.urlretrieve(download_url, zip_filename)
     except urllib.error.URLError as e:
-        print(f"Error downloading source: {e}")
-        sys.exit(1)
+        raise RuntimeError(f"Error downloading source: {e}") from e
 
-    # 4. Extract and organize files
-    target_dir = Path("submodule/Moonlander-Mk1-QMK")
+    # 3. Extract and organize files
+    target_dir = submodule_path
     if not target_dir.exists():
-        print(f"Error: Target directory {target_dir} does not exist.")
-        sys.exit(1)
+        # Clean up zip before raising
+        if os.path.exists(zip_filename):
+            os.remove(zip_filename)
+        raise FileNotFoundError(f"Target directory {target_dir} does not exist.")
 
     print(f"Extracting to {target_dir}...")
     try:
         with zipfile.ZipFile(zip_filename, "r") as zip_ref:
             zip_ref.extractall(target_dir)
-    except zipfile.BadZipFile:
-        print("Error: Downloaded file is not a valid zip file.")
-        sys.exit(1)
+    except zipfile.BadZipFile as e:
+        raise RuntimeError("Error: Downloaded file is not a valid zip file.") from e
     finally:
         if os.path.exists(zip_filename):
             os.remove(zip_filename)
@@ -116,9 +115,19 @@ def main():
     else:
         print("Warning: Could not find extracted source directory (ending in _source).")
 
+    # 4. Patch if requested
+    commit_message = title
+    if do_patch:
+        keymap_path = src_dir / "keymap.c"
+        print(f"Patching keymap at {keymap_path}...")
+        try:
+            patch_keymap(keymap_path, geometry)
+            commit_message += " (patched)"
+        except Exception as e:
+            raise RuntimeError(f"Failed to patch keymap: {e}") from e
+
     # 5. Git commit
     print("Committing changes...")
-    commit_message = title
     try:
         subprocess.run(["git", "add", "."], cwd=target_dir, check=True)
         # Check if there are changes to commit
@@ -138,11 +147,6 @@ def main():
         else:
             print("No changes to commit.")
     except subprocess.CalledProcessError as e:
-        print(f"Error during git operations: {e}")
-        sys.exit(1)
+        raise RuntimeError(f"Error during git operations: {e}") from e
 
     print("Update complete!")
-
-
-if __name__ == "__main__":
-    main()

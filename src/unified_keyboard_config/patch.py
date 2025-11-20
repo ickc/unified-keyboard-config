@@ -1,4 +1,3 @@
-import argparse
 import re
 from pathlib import Path
 
@@ -41,19 +40,3 @@ def patch_keymap(keymap_path: Path, geometry: str | None = None):
 
     keymap_path.write_text(new_content, encoding="utf-8")
     print(f"Successfully patched {keymap_path}")
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Patch Oryx keymap file.")
-    parser.add_argument("path", type=Path, help="Path to the keymap.c file")
-    parser.add_argument(
-        "--geometry", type=str, help="Keyboard geometry (e.g., moonlander)"
-    )
-
-    args = parser.parse_args()
-
-    patch_keymap(args.path, args.geometry)
-
-
-if __name__ == "__main__":
-    main()
