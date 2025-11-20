@@ -1082,7 +1082,7 @@ packages:
 - pypi: ./
   name: unified-keyboard-config
   version: 0.1.0
-  sha256: eae4bed71e25151c319a139b86193b390204af14ff697a30e5000674c42b666a
+  sha256: 4134139a56cb7b0d76b5fa93709b92ffc0d2d3de4b844f8f5d37be06058d26b8
   requires_python: '>=3.11'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/win-64/vc-14.3-h2b53caa_32.conda
