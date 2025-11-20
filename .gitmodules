@@ -1,0 +1,4 @@
+[submodule "submodule/Adv360-Pro-ZMK"]
+	path = submodule/Adv360-Pro-ZMK
+	url = git@github.com:ickc/Adv360-Pro-ZMK.git
+	branch = dev
