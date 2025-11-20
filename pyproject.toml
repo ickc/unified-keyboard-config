@@ -20,6 +20,7 @@ unified_keyboard_config = { path = ".", editable = true }
 submodule-init = { cmd = "git submodule update --init --recursive", description = "Initialize submodules after cloning" }
 submodule-update = { cmd = "git submodule update --remote --recursive", description = "Update submodules from remote" }
 update-moonlander = { cmd = "python -m unified_keyboard_config.pull_oryx", description = "Update Moonlander firmware source from Oryx" }
+patch-moonlander = { cmd = "python -m unified_keyboard_config.patch_oryx submodule/Moonlander-Mk1-QMK/src/keymap.c --geometry $ORYX_GEOMETRY", description = "Patch Moonlander keymap with custom layout" }
 
 [tool.pixi.activation.env]
 ORYX_LAYOUT_ID = "QwA3z"
