@@ -19,7 +19,7 @@ unified_keyboard_config = { path = ".", editable = true }
 [tool.pixi.tasks]
 submodule-init = { cmd = "git submodule update --init --recursive", description = "Initialize submodules after cloning" }
 submodule-update = { cmd = "git submodule update --remote --recursive", description = "Update submodules from remote" }
-update-moonlander = { cmd = "curl -L -o source.zip https://oryx.zsa.io/source/$ORYX_LAYOUT_HASH && unzip -o source.zip -d submodule/Moonlander-Mk1-QMK && rm source.zip && cd submodule/Moonlander-Mk1-QMK && git add . && git commit -m 'Update Moonlander firmware source'", description = "Update Moonlander firmware source from Oryx" }
+update-moonlander = { cmd = "curl -L -o source.zip https://oryx.zsa.io/source/$ORYX_LAYOUT_HASH && unzip -o source.zip -d submodule/Moonlander-Mk1-QMK && rm source.zip && cd submodule/Moonlander-Mk1-QMK && rm -f build.log *.bin *.bin.md5 && rm -rf src && mv *_source src && git add . && git commit -m 'Update Moonlander firmware source'", description = "Update Moonlander firmware source from Oryx" }
 
 [tool.pixi.activation.env]
 ORYX_LAYOUT_HASH = "v65q0b"
