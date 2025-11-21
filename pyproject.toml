@@ -1,6 +1,6 @@
 [project]
 authors = [{name = "Kolen Cheung", email = "christian.kolen@gmail.com"}]
-dependencies = []
+dependencies = ["defopt"]
 name = "unified-keyboard-config"
 requires-python = ">= 3.11"
 version = "0.1.0"
@@ -12,6 +12,9 @@ requires = ["hatchling"]
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
+
+[tool.pixi.dependencies]
+defopt = ">=7.0.0,<8"
 
 [tool.pixi.pypi-dependencies]
 unified_keyboard_config = { path = ".", editable = true }
