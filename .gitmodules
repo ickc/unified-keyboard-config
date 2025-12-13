@@ -6,3 +6,7 @@
 	path = submodule/Moonlander-Mk1-QMK
 	url = git@github.com:ickc/Moonlander-Mk1-QMK.git
 	branch = dev
+[submodule "submodule/Silakka54-ZMK"]
+	path = submodule/Silakka54-ZMK
+	url = git@github.com:ickc/Silakka54-ZMK.git
+	branch = main
