@@ -1236,7 +1236,7 @@ packages:
 - pypi: ./
   name: unified-keyboard-config
   version: 0.1.0
-  sha256: 6905d8c7d3e1ca81a42e4c2fa5ee38324669f897f8e1040672e0188a3cfc4e60
+  sha256: 04d69876363bd7c068d227ac3f48b88279b1322979740316b8f3b19236072e11
   requires_dist:
   - defopt
   requires_python: '>=3.11'
