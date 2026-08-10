@@ -113,9 +113,9 @@ The Adv360 firmware has custom drivers not present in standard ZMK or the Lily58
 ## 3. Custom Behaviors & Mods
 
 ### Behaviors
-- **Port**: Copy `hml`, `hmr`, `mlr`, `mll`, `ltt` definitions.
-  - `ltt` is the stand-in for QMK's `TT(n)`, which ZMK has no equivalent for: a hold-tap of `<&mo>, <&tog>`, so hold = momentary and tap = toggle. It differs from QMK in that a *single* tap toggles (QMK's `TAPPING_TOGGLE` defaults to 5).
+- **Port**: Copy `hml`, `hmr`, `mlr`, `mll` definitions.
   - `mmr`/`mml` (mirror mod-taps) are no longer used by either board — the layout dropped those dual-function keys — but the names are kept here in case they come back.
+  - QMK `MO(n)` is a plain `&mo n` and carries no `hold-trigger-key-positions`; only the `mll`/`mlr` mirror keys are hand-restricted. If `TT(n)` ever reappears upstream, note that ZMK has no equivalent and it needs a `<&mo>, <&tog>` hold-tap.
 - **Update Triggers**: The `hold-trigger-key-positions` must be recalculated for Lily58 key indices.
   - **Left Hand Indices**: 0-5, 12-17, 24-29, 36-42, 50-53 (Thumbs).
   - **Right Hand Indices**: 6-11, 18-23, 30-35, 43-49, 54-57 (Thumbs).
