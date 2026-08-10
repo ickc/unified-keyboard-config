@@ -1,7 +1,7 @@
 import json
-import os
 import shutil
 import subprocess
+import tempfile
 import urllib.error
 import urllib.request
 import zipfile
@@ -62,31 +62,27 @@ def pull_source(
 
     # 2. Download source zip
     download_url = f"https://oryx.zsa.io/source/{latest_hash}"
-    zip_filename = "source.zip"
-    print(f"Downloading source from: {download_url}")
 
-    try:
-        urllib.request.urlretrieve(download_url, zip_filename)
-    except urllib.error.URLError as e:
-        raise RuntimeError(f"Error downloading source: {e}") from e
-
-    # 3. Extract and organize files
     target_dir = submodule_path
     if not target_dir.exists():
-        # Clean up zip before raising
-        if os.path.exists(zip_filename):
-            os.remove(zip_filename)
         raise FileNotFoundError(f"Target directory {target_dir} does not exist.")
 
-    print(f"Extracting to {target_dir}...")
-    try:
-        with zipfile.ZipFile(zip_filename, "r") as zip_ref:
-            zip_ref.extractall(target_dir)
-    except zipfile.BadZipFile as e:
-        raise RuntimeError("Error: Downloaded file is not a valid zip file.") from e
-    finally:
-        if os.path.exists(zip_filename):
-            os.remove(zip_filename)
+    # 3. Extract and organize files
+    # Download into a temp dir so a failure never leaves a stray zip behind.
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        zip_path = Path(tmp_dir) / "source.zip"
+        print(f"Downloading source from: {download_url}")
+        try:
+            urllib.request.urlretrieve(download_url, zip_path)
+        except urllib.error.URLError as e:
+            raise RuntimeError(f"Error downloading source: {e}") from e
+
+        print(f"Extracting to {target_dir}...")
+        try:
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                zip_ref.extractall(target_dir)
+        except zipfile.BadZipFile as e:
+            raise RuntimeError("Error: Downloaded file is not a valid zip file.") from e
 
     # Cleanup and move files
     # The zip extracts to a folder like 'moonlander_layout_name_source'
