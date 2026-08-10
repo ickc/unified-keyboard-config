@@ -26,5 +26,5 @@ update-moonlander = { cmd = "python -m unified_keyboard_config.cli pull submodul
 patch-moonlander = { cmd = "python -m unified_keyboard_config.cli patch submodule/Moonlander-Mk1-QMK/src/keymap.c", description = "Patch Moonlander keymap with custom layout" }
 
 [tool.pixi.activation.env]
-ORYX_LAYOUT_ID = "QwA3z"
+ORYX_LAYOUT_ID = "yXxz0"
 ORYX_GEOMETRY = "moonlander"
