@@ -106,6 +106,28 @@ The Adv360 firmware has custom drivers not present in standard ZMK or the Lily58
   - `&rgb_ug` (RGB keys)
   - `&studio_unlock` (Unless ZMK Studio is enabled, see below)
 
+### HID usage ranges (Adv360 only)
+
+The Adv360 board defconfigs (`config/boards/arm/adv360/adv360_{left,right}_defconfig`) constrain which HID usages the firmware can physically emit. A binding outside the range is silently dropped — the host never sees an event, so it looks like the OS is ignoring the key.
+
+| Setting | Ceiling | Consequence |
+| :--- | :--- | :--- |
+| `CONFIG_ZMK_HID_REPORT_TYPE_NKRO=y` | keyboard usage `0x67` (`KEYPAD_EQUAL`) | **F13-F24 (`0x68`+) and INTL keys are unreachable** |
+| `+ CONFIG_ZMK_HID_KEYBOARD_EXTENDED_REPORT=y` | keyboard usage `0x97` (`LANG8`) | F13-F24 work. Breaks Android input — ZMK gives *no* input there |
+| `CONFIG_ZMK_HID_CONSUMER_REPORT_USAGES_BASIC=y` | consumer usage `0xFF` | `C_AC_SEARCH` (`0x221`), `C_AC_DESKTOP_SHOW_ALL_WINDOWS` (`0x29F`) unreachable |
+| `CONFIG_ZMK_HID_CONSUMER_REPORT_USAGES_FULL=y` | consumer usage `0xFFF` | Both work. Current setting |
+
+**Rules**:
+- Keep both halves' defconfigs in sync — edit `adv360_left_defconfig` *and* `adv360_right_defconfig`.
+- After changing either setting, **unpair and re-pair on macOS**. The report descriptor changes shape and macOS caches the BLE HID report map; without a re-pair the old descriptor stays in force and the fix looks like it did nothing.
+- The Silakka54 needs none of this: `lily58.conf` sets no HID options, so it inherits ZMK's defaults (HKRO, keyboard ceiling `0xFF`, consumer `FULL`), which cover every usage in the layout.
+
+### Do Not Disturb is not a portable keycode
+
+QMK's `MAC_DND` sends **Generic Desktop** usage `0x9B` (System Do Not Disturb) via `HSS()`. Do **not** port this as ZMK's `K_CANCEL`: that is **Keyboard/Keypad** usage `0x9B` (Keyboard Cancel) — same number, unrelated page, and macOS does nothing with it. ZMK cannot send it at all either way: `zmk_hid_press()` dispatches only `HID_USAGE_KEY` and `HID_USAGE_CONSUMER`, so there is no Generic Desktop report (which is also why `SYSTEM_POWER`/`SYSTEM_SLEEP` in `keys.h` are dead defines).
+
+macOS stopped acting on the QMK version too, so **both** boards now bind plain `F13`, remapped host-side via Shortcuts.app ("Set Focus"). Note that F13 is what forces `CONFIG_ZMK_HID_KEYBOARD_EXTENDED_REPORT=y` above.
+
 ### ZMK Studio
 - **Enable**: Add `CONFIG_ZMK_STUDIO=y` to `lily58.conf`.
 - **Unlock Key**: Map `&studio_unlock` to a **home-row outer** key on the utility layers — currently position **35** on `fn` and its mirror, position **24**, on `nf`. It must be a key that physically exists, so the inner thumbs are not an option.
