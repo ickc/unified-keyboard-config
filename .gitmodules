@@ -9,4 +9,4 @@
 [submodule "submodule/Silakka54-ZMK"]
 	path = submodule/Silakka54-ZMK
 	url = git@github.com:ickc/Silakka54-ZMK.git
-	branch = main
+	branch = dev

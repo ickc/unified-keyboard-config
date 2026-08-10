@@ -2,6 +2,33 @@
 
 This guide documents the rules and logic used to port the `adv360.keymap` to `lily58.keymap`. Use this when updating the Lily58 configuration based on future Adv360 changes.
 
+## 0. Why "Lily58" and not "Silakka54"
+
+The keyboard in `submodule/Silakka54-ZMK` is **physically a Silakka54**, but it is driven by the **Lily58 shield** in ZMK. As far as the software in this repo is concerned, it *is* a Lily58 — which is why every file is named `lily58.*`:
+
+- `config/lily58.keymap`, `config/lily58.conf`
+- build targets `lily58_left` / `lily58_right` in `build.yaml`
+- all key positions below are **Lily58 shield indices (0-57)**
+
+The Lily58 has **58 keys**; the Silakka54 has **54**. The 4 Lily58 positions with no physical Silakka54 key are hardwired to `&none` on *every* layer:
+
+| Lily58 position | Where | Physically present on Silakka54? |
+| :--- | :--- | :--- |
+| **42**, **43** | Bottom row (row 3), inner column each side | No |
+| **53**, **54** | Thumb cluster, innermost key each side | No |
+
+**Rule**: never bind anything to positions 42, 43, 53, 54 — the key does not exist on the hardware and the binding is unreachable. Always write `&none` there, including on mirrored and utility layers.
+
+Full Lily58 position map used throughout this guide:
+
+| Row | Left | Right |
+| :--- | :--- | :--- |
+| Number row | 0-5 | 6-11 |
+| Top row | 12-17 | 18-23 |
+| Home row | 24-29 | 30-35 |
+| Bottom row | 36-42 (**42 = dead**) | 43-49 (**43 = dead**) |
+| Thumbs | 50-53 (**53 = dead**) | 54-57 (**54 = dead**) |
+
 ## 1. Physical Layout Mapping
 
 The Adv360 is larger than the Lily58. We map a subset of keys and drop the rest.
@@ -20,17 +47,17 @@ The Adv360 is larger than the Lily58. We map a subset of keys and drop the rest.
   - *Consequence*: Dedicated `Ctrl`, `Alt`, `Cmd` keys are lost. We replace this functionality with **Home Row Mods** (see Section 3).
 
 ### Thumb Cluster
-The Adv360 thumb cluster is complex. The Lily58 has 4 thumb keys per side.
+The Adv360 thumb cluster is complex. The Lily58 shield has 4 thumb keys per side, but only **3 per side are physically present on the Silakka54** (see Section 0).
 
-| Lily58 Key | Adv360 Equivalent | Function |
-| :--- | :--- | :--- |
-| **Outer 1** (Leftmost/Rightmost) | Adv360 Thumb 1 | Primary Thumb Layer 1 |
-| **Outer 2** | Adv360 Thumb 2 | Primary Thumb Layer 2 |
-| **Outer 3** | Adv360 Thumb 3 | Primary Thumb Layer 3 |
-| **Inner** (Closest to OLED) | **None** (Dropped Adv360 Inner/Upper) | Used for **Utility/Unlock** or `&none` |
+| Lily58 Key | Position (L / R) | Adv360 Equivalent | Function |
+| :--- | :--- | :--- | :--- |
+| **Outer 1** (Leftmost/Rightmost) | 50 / 57 | Adv360 Thumb 1 | Primary Thumb Layer 1 |
+| **Outer 2** | 51 / 56 | Adv360 Thumb 2 | Primary Thumb Layer 2 |
+| **Outer 3** | 52 / 55 | Adv360 Thumb 3 | Primary Thumb Layer 3 |
+| **Inner** (Closest to OLED) | 53 / 54 | — | **Dead — always `&none`** |
 
-- **Rule**: Map the first 3 "Primary" Adv360 thumb bindings to Lily58's 3 Outer keys.
-- **Inner Keys**: Use for `&studio_unlock` on utility layers (`fn`, `nf`). Set to `&none` on base layers if unused.
+- **Rule**: Map the first 3 "Primary" Adv360 thumb bindings to Lily58's 3 Outer keys. Drop the remaining Adv360 thumb keys.
+- **Inner Keys**: Positions 53 and 54 have no physical key on the Silakka54. Bind `&none` on every layer — do **not** park utility bindings there.
 
 ## 2. Configuration & Cleanups
 
@@ -48,15 +75,16 @@ The Adv360 firmware has custom drivers not present in standard ZMK or the Lily58
 
 ### ZMK Studio
 - **Enable**: Add `CONFIG_ZMK_STUDIO=y` to `lily58.conf`.
-- **Unlock Key**: Map `&studio_unlock` to the **Inner Thumb** keys on Utility Layers (`fn`, `nf`).
+- **Unlock Key**: Map `&studio_unlock` to a **home-row outer** key on the utility layers — currently position **35** on `fn` and its mirror, position **24**, on `nf`. It must be a key that physically exists, so the inner thumbs are not an option.
 
 ## 3. Custom Behaviors & Mods
 
 ### Behaviors
 - **Port**: Copy `hml`, `hmr`, `mmr`, `mml`, `mlr`, `mll` definitions.
 - **Update Triggers**: The `hold-trigger-key-positions` must be recalculated for Lily58 key indices.
-  - **Left Hand Indices**: 0-5, 12-17, 24-29, 36-41, 50-53 (Thumbs).
-  - **Right Hand Indices**: 6-11, 18-23, 30-35, 42-49, 54-57 (Thumbs).
+  - **Left Hand Indices**: 0-5, 12-17, 24-29, 36-42, 50-53 (Thumbs).
+  - **Right Hand Indices**: 6-11, 18-23, 30-35, 43-49, 54-57 (Thumbs).
+  - *Note*: 42, 43, 53 and 54 are dead keys (Section 0) — listing them is harmless but pointless.
   - *Note*: Ensure the list is accurate to the generated `lily58.keymap`.
 
 ### Bottom Row Mods
