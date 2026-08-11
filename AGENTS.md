@@ -128,6 +128,54 @@ QMK's `MAC_DND` sends **Generic Desktop** usage `0x9B` (System Do Not Disturb) v
 
 macOS stopped acting on the QMK version too, so **both** boards now bind plain `F13`, remapped host-side via Shortcuts.app ("Set Focus"). Note that F13 is what forces `CONFIG_ZMK_HID_KEYBOARD_EXTENDED_REPORT=y` above.
 
+### ZMK version pinning (Silakka54)
+
+The Silakka54 runs **nice!nano v2** controllers. Upstream ZMK has changed what the `board:` value in `build.yaml` *means* twice, silently, and both changes are load-bearing. Two upstream commits define the eras:
+
+| Upstream commit | Date | What it did |
+| :--- | :--- | :--- |
+| `c06fa48c` ([#3060](https://github.com/zmkfirmware/zmk/pull/3060)) | 2025-12-10 | Zephyr 3.5 → 4.1 (LVGL 8 → 9); ported the nice!view code; **merged `nice_nano` + `nice_nano_v2` into one board with hardware revisions, default `2.0.0`** |
+| `6690d535` ([#3145](https://github.com/zmkfirmware/zmk/pull/3145)) | 2026-02-12 | Moved to upstream Zephyr boards; board target became `nice_nano/nrf52840/zmk` and shield board-overlays were renamed to match |
+
+Which gives three eras, and the correct `board:` differs in each:
+
+| ZMK era | Correct `board:` | With `board: nice_nano` you get |
+| :--- | :--- | :--- |
+| before #3060 (incl. **v0.3.0**) | `nice_nano_v2` | builds, but targets **v1** hardware → **blank nice!view** |
+| #3060 … #3145 | `nice_nano` | correct (revision defaults to `2.0.0`) |
+| after #3145 (incl. current `main`) | `nice_nano@2//zmk` ← **current setting** | build fails: `undefined node label 'nice_view_spi'` |
+
+The post-#3145 form is Zephyr hardware-model-v2 syntax, `board[@revision]/soc[/variant]`:
+
+```
+nice_nano@2//zmk
+   │      │ │ └── variant: ZMK's additions to the upstream Zephyr board
+   │      │ └──── soc: empty, the board has only one (nrf52840)
+   │      └────── revision 2.0.0 = nice!nano v2
+   └───────────── board name (vendor dir: nicekeyboards)
+```
+
+Zephyr normalises that to `nice_nano@2.0.0/nrf52840/zmk`, which is why the shield board-overlay is named `nice_nano_nrf52840_zmk.overlay`. Bare `nice_nano//zmk` would also work — it inherits `default: 2.0.0` from `board.yml` — but **state `@2` explicitly**: it was exactly an inherited default silently changing meaning that blanked the display. A v1 controller would be `nice_nano@1//zmk`.
+
+To verify a build really got the revision you asked for, check the resolved config: revision 2.0.0 yields `CONFIG_ZMK_BATTERY_NRF_VDDH=y`, whereas 1.0.0 yields the voltage-divider driver instead.
+
+**Why the wrong revision blanks the screen.** On pre-#3060 ZMK, `nice_nano` and `nice_nano_v2` are separate boards, and their DTS differ in exactly one functional way:
+
+```diff
+ EXT_POWER {
+-    control-gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;    // nice_nano   (v1)
++    control-gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;   // nice_nano_v2
++    init-delay-ms = <50>;
+ };
+```
+
+`EXT_POWER` (P0.13) gates the **external VCC rail that powers the nice!view**. Running v1 firmware on v2 hardware inverts that pin, so the rail stays off and the display never powers up. Everything else looks perfectly healthy — the key matrix, USB and BLE are driven straight off the MCU and never touch that rail. A keyboard that types and pairs fine but shows nothing is the signature of this exact mistake, not of a display bug. (Battery reporting is also wrong in this state: v1 reads a voltage divider on ADC channel 2, v2 reads `zmk,battery-nrf-vddh`.)
+
+**Rules**:
+- Pin ZMK to a tag or a full commit SHA in *both* `config/west.yml` (`revision:`) and `.github/workflows/build.yml` (`uses: …@`). Keep the two in sync — mismatched refs fail the build.
+- **Never track `main`.** Upstream's position ([#3157](https://github.com/zmkfirmware/zmk/issues/3157)) is that breaking changes are expected on `main` and users must pin; they explicitly declined to add a `nice_nano_v2` compatibility alias.
+- When moving the pin across either boundary above, update `board:` in the same commit, and prefer the explicit `@2.0.0` revision so the name cannot quietly change meaning again.
+
 ### ZMK Studio
 - **Enable**: Add `CONFIG_ZMK_STUDIO=y` to `lily58.conf`.
 - **Unlock Key**: Map `&studio_unlock` to a **home-row outer** key on the utility layers — currently position **35** on `fn` and its mirror, position **24**, on `nf`. It must be a key that physically exists, so the inner thumbs are not an option.
