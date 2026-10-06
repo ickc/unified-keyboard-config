@@ -3,7 +3,7 @@ authors = [{name = "Kolen Cheung", email = "christian.kolen@gmail.com"}]
 dependencies = ["defopt"]
 name = "unified-keyboard-config"
 requires-python = ">= 3.11"
-version = "2025.12.16"
+version = "2026.08.11"
 
 [build-system]
 build-backend = "hatchling.build"
