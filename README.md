@@ -31,6 +31,19 @@ The ORYX layout is selected by `ORYX_LAYOUT_ID` and `ORYX_GEOMETRY`, set in `[to
 
 Note that `update-moonlander` commits *inside* the submodule only — bumping the pointer in this repo (`git add submodule/Moonlander-Mk1-QMK && git commit`) is a separate, manual step.
 
+# Layers
+
+All three boards share the same 4 layers, in the same order:
+
+| # | Name | Purpose |
+| :--- | :--- | :--- |
+| 0 | `base` | QWERTY |
+| 1 | `esab` | `base` mirrored left-right, for one-handed typing |
+| 2 | `fn` | F-keys, media, Bluetooth, mouse |
+| 3 | `nf` | `fn` mirrored |
+
+`shift-esab` (formerly layer 4, a pre-shifted copy of `esab`) was removed in the ORYX yXxz0 layout. It was reached through the mirror mod-taps on the thumbs, which yXxz0 dropped to reduce dual-function keys. Shifted mirrored characters now come from holding Shift on `esab` like on any other layer. How `esab` is reached differs per board: a one-shot key (`OSL(1)` / `&sl 1`) on the Moonlander and Adv360, and holding Space or Backspace on the Silakka54 (see [AGENTS.md](AGENTS.md)).
+
 # Releases
 
 This repository is tagged with CalVer, and a release records the exact set of submodule commits that were current at that point. The submodule repositories carry their own tags of the same name, and it is those releases that hold the actual firmware artifacts — GitHub's source archive for this repository does **not** include submodule contents.

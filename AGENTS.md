@@ -184,7 +184,7 @@ To verify a build really got the revision you asked for, check the resolved conf
 
 ### Behaviors
 - **Port**: Copy `hml`, `hmr`, `mlr`, `mll` definitions.
-  - `mmr`/`mml` (mirror mod-taps) are no longer used by either board — the layout dropped those dual-function keys — but the names are kept here in case they come back.
+  - `mmr`/`mml` (mirror mod-taps) are no longer used by either board — the layout dropped those dual-function keys — but the names are kept here in case they come back. They were the only way into layer 4, `shift-esab`, which was removed with them; layers are now 0-3 (`base`, `esab`, `fn`, `nf`) on every board.
   - QMK `MO(n)` is a plain `&mo n` and carries no `hold-trigger-key-positions`; only the `mll`/`mlr` mirror keys are hand-restricted. If `TT(n)` ever reappears upstream, note that ZMK has no equivalent and it needs a `<&mo>, <&tog>` hold-tap.
 - **Update Triggers**: The `hold-trigger-key-positions` must be recalculated for Lily58 key indices.
   - **Left Hand Indices**: 0-5, 12-17, 24-29, 36-42, 50-53 (Thumbs).
